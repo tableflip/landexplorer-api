@@ -31,6 +31,7 @@
     "sequelize": "^3.27.0"
   },
   "devDependencies": {
+    "async": "^2.1.4",
     "babel-cli": "6.5.1",
     "babel-core": "^6.5.2",
     "babel-eslint": "^6.0.0-beta.6",
@@ -39,6 +40,7 @@
     "babel-preset-react": "^6.5.0",
     "babel-preset-stage-0": "6.5.0",
     "nodemon": "^1.9.1",
+    "request": "^2.79.0",
     "standard": "^8.6.0",
     "tape": "^4.6.3"
   }
