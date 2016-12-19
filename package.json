@@ -1,9 +1,10 @@
 {
   "name": "inspire-api",
   "version": "0.1.0",
-  "description": "A micro service that looks up an insprire id for a given lng lat",
+  "description": "An API for the INSPIRE Index Polygons dataset. Look up an Inspire id for a given lng lat",
   "scripts": {
-    "start": "nodemon ./server.js --exec babel-node",
+    "start": "./server.js",
+    "watch": "nodemon ./server.js --exec babel-node",
     "test": "standard",
     "lint": "eslint ."
   },
@@ -12,7 +13,7 @@
     "url": "git+https://github.com/tableflip/inspire-api.git"
   },
   "author": "TABLEFLIP",
-  "license": "GNU",
+  "license": "AGPL-3.0",
   "bugs": {
     "url": "https://github.com/tableflip/inspire-api/issues"
   },
@@ -20,6 +21,7 @@
   "dependencies": {
     "apollo-server": "^0.2.8",
     "body-parser": "^1.15.2",
+    "boom": "^4.2.0",
     "express": "4.13.4",
     "graphql": "^0.7.2",
     "graphql-tools": "^0.7.2",

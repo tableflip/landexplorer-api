@@ -1,4 +1,5 @@
 import { db } from './connectors'
+import Boom from 'boom'
 
 const resolvers = {
   Query: {
@@ -9,11 +10,12 @@ const resolvers = {
         ST_GeomFromText('POINT(${lng} ${lat})', 4326)
       );`, { type: db.QueryTypes.SELECT })
       .then((results) => {
+        if (!results || !results[0]) return Boom.notFound()
         return results[0].inspireid
       })
       .catch((err) => {
         console.error(err)
-        return err
+        return Boom(err)
       })
     }
   }

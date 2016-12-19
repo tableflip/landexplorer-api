@@ -14,7 +14,7 @@ const executableSchema = makeExecutableSchema({
   typeDefs: Schema,
   resolvers: Resolvers,
   connectors: Connectors,
-  allowUndefinedInResolve: true,
+  allowUndefinedInResolve: false,
   printErrors: true
 })
 
