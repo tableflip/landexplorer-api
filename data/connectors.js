@@ -7,7 +7,7 @@ const db = new Sequelize('inspire', null, null, {
   pool: {
     max: 5,
     min: 0,
-    idle: 10000
+    idle: 10000 // The maximum time, in milliseconds, that a connection can be idle before being released.
   }
 })
 
