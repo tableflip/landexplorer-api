@@ -2,8 +2,6 @@ import express from 'express'
 import Schema from './data/schema'
 import Resolvers from './data/resolvers'
 import Connectors from './data/connectors'
-// import Mocks from './data/mocks'
-// import { addMockFunctionsToSchema } from 'graphql-tools'
 import { apolloExpress, graphiqlExpress } from 'apollo-server'
 import { makeExecutableSchema } from 'graphql-tools'
 import bodyParser from 'body-parser'
@@ -19,12 +17,6 @@ const executableSchema = makeExecutableSchema({
   allowUndefinedInResolve: true,
   printErrors: true
 })
-
-// addMockFunctionsToSchema({
-//   schema: executableSchema,
-//   mocks: Mocks,
-//   preserveResolvers: true
-// })
 
 graphQLServer.use('/graphql', bodyParser.json(), apolloExpress({
   schema: executableSchema,

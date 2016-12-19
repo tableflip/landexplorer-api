@@ -11,10 +11,4 @@ const db = new Sequelize('inspire', null, null, {
   }
 })
 
-const InspireIdModel = db.define('inspireids', {
-  inspireid: { type: Sequelize.INTEGER }
-})
-
-const InspireId = db.models.inspireids
-
-export { InspireId, InspireIdModel }
+export { db }

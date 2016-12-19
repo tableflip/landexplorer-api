@@ -1,7 +1,20 @@
+import { db } from './connectors'
+
 const resolvers = {
   Query: {
-    inspireId (root, args) {
-      return '123123123'
+    inspireId (_, args) {
+      const { lng, lat } = args
+      return db.query(`SELECT inspireid FROM predefined WHERE ST_Contains(
+        ST_Transform(ST_SetSRID(wkb_geometry, 27700), 4326),
+        ST_GeomFromText('POINT(${lng} ${lat})', 4326)
+      );`, { type: db.QueryTypes.SELECT })
+      .then((results) => {
+        return results[0].inspireid
+      })
+      .catch((err) => {
+        console.error(err)
+        return err
+      })
     }
   }
 }
