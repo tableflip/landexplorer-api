@@ -1,8 +1,9 @@
 import express from 'express'
-import { apolloExpress, graphiqlExpress } from 'apollo-server'
+import { graphqlExpress, graphiqlExpress } from 'graphql-server-express'
 import { makeExecutableSchema } from 'graphql-tools'
 import bodyParser from 'body-parser'
 import config from 'config'
+import cors from 'cors'
 
 import Schema from '../data/schema'
 import Resolvers from '../data/resolvers'
@@ -18,7 +19,10 @@ const executableSchema = makeExecutableSchema({
   printErrors: true
 })
 
-api.use('/graphql', bodyParser.json(), apolloExpress({
+api.use(cors())
+api.options('*', cors())
+
+api.use('/graphql', bodyParser.json(), graphqlExpress({
   schema: executableSchema,
   context: {}
 }))
