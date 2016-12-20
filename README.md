@@ -48,3 +48,9 @@ Now extend the schema definition of inspire_tests to include geometry by using:
 To seed the database requires you to have GDAL installed with a Postgres driver
 
 `brew install gdal --with-postgresql`
+
+You can then seed the database by Running
+
+```
+npm run seed
+```
