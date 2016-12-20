@@ -32,3 +32,19 @@ The service will return your inspireId for that lng lat
   }
 }
 ```
+
+**Running the tests**
+
+To run the tests you will need to create a database in postgres like this:
+
+`CREATE DATABASE inspire_tests;`
+
+Then connect to `inspire_tests` database using `\CONNECT inspire_tests;`
+
+Now extend the schema definition of inspire_tests to include geometry by using:
+
+`CREATE EXTENSION postgis;`
+
+To seed the database requires you to have GDAL installed with a Postgres driver
+
+`brew install gdal --with-postgresql`

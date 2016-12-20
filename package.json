@@ -5,7 +5,8 @@
   "scripts": {
     "start": "babel-node ./index.js",
     "watch": "nodemon ./index.js --exec babel-node",
-    "test": "standard && NODE_ENV=test babel-node tests/*.js"
+    "test": "standard && NODE_ENV=test babel-node tests/*.js",
+    "seed": "NODE_ENV=test node tests/data/seed.js"
   },
   "repository": {
     "type": "git",
