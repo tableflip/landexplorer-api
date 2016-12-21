@@ -1,6 +1,6 @@
 const typeDefinitions = `
   type Query {
-    inspireId(lng: String, lat: String): String
+    inspireId(lng: Float!, lat: Float!): Int
   }
 
   schema {

@@ -1,7 +1,8 @@
 
 import Sequelize from 'sequelize'
+import config from 'config'
 
-const db = new Sequelize('inspire', null, null, {
+const db = new Sequelize(config.db, null, null, {
   host: 'localhost',
   dialect: 'postgres',
   pool: {

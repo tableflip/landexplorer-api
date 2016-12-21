@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "description": "An API for the INSPIRE Index Polygons dataset. Look up an Inspire id for a given lng lat",
   "scripts": {
-    "start": "babel-node ./server.js",
-    "watch": "nodemon ./server.js --exec babel-node",
-    "test": "standard"
+    "start": "babel-node ./index.js",
+    "watch": "nodemon ./index.js --exec babel-node",
+    "test": "standard && NODE_ENV=test babel-node tests/*.js",
+    "seed": "NODE_ENV=test node tests/data/seed.js"
   },
   "repository": {
     "type": "git",
@@ -21,8 +22,11 @@
     "apollo-server": "^0.2.8",
     "body-parser": "^1.15.2",
     "boom": "^4.2.0",
+    "config": "^1.24.0",
+    "cors": "^2.8.1",
     "express": "4.13.4",
     "graphql": "^0.7.2",
+    "graphql-server-express": "^0.4.3",
     "graphql-tools": "^0.7.2",
     "pg": "^6.1.2",
     "pg-hstore": "^2.3.2",
@@ -30,6 +34,7 @@
     "sequelize": "^3.27.0"
   },
   "devDependencies": {
+    "async": "^2.1.4",
     "babel-cli": "6.5.1",
     "babel-core": "^6.5.2",
     "babel-eslint": "^6.0.0-beta.6",
@@ -38,6 +43,8 @@
     "babel-preset-react": "^6.5.0",
     "babel-preset-stage-0": "6.5.0",
     "nodemon": "^1.9.1",
-    "standard": "^8.6.0"
+    "request": "^2.79.0",
+    "standard": "^8.6.0",
+    "tape": "^4.6.3"
   }
 }
