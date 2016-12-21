@@ -39,7 +39,7 @@ To run the tests you will need to create a database in postgres like this:
 
 `CREATE DATABASE inspire_tests;`
 
-Then connect to `inspire_tests` database using `\CONNECT inspire_tests;`
+Then connect to `inspire_tests` database using `\connect inspire_tests;`
 
 Now extend the schema definition of inspire_tests to include geometry by using:
 
