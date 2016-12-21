@@ -1,4 +1,8 @@
 {
   "port": 9090,
-  "db": "inspire_tests"
+  "postgres": {
+    "db": "inspire_tests",
+    "username": null,
+    "password": null
+  }
 }

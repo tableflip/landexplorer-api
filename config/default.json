@@ -1,5 +1,9 @@
 {
   "port": 8080,
   "host": "localhost",
-  "db": "inspire"
+  "postgres": {
+    "db": "inspire",
+    "username": null,
+    "password": null
+  }
 }

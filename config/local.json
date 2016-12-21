@@ -1,0 +1,7 @@
+{
+  "postgres": {
+    "db": "inspire_tests",
+    "username": "richard",
+    "password": "password"
+  }
+}
