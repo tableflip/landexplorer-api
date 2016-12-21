@@ -1,5 +1,4 @@
 import { db } from './connectors'
-import Boom from 'boom'
 
 const resolvers = {
   Query: {
@@ -9,12 +8,12 @@ const resolvers = {
 
       return db.query(query, { type: db.QueryTypes.SELECT })
       .then((results) => {
-        if (!results || !results[0]) return Boom.notFound()
+        if (!results || !results[0]) return null
         return results[0].inspireid
       })
       .catch((err) => {
         console.error(err)
-        return Boom(err)
+        throw new Error(err)
       })
     }
   }
