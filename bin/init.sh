@@ -1,6 +1,7 @@
-#
+#!/bin/bash
+
 # Import INSPIRE index polygons into postgres
-#
+
 # - Convert source GML files into a db dump using `ogr2ogr`.
 # - Create a db, schema and table as needed.
 # - Import the data dump
@@ -13,7 +14,11 @@
 # - optimal postgis import flow: http://longwayaround.org.uk/notes/loading-postgis/
 # - http://revenant.ca/www/postgis/workshop/indexing.html
 # - https://github.com/psd/landregistry-inspire-data/blob/1c239d0299d8b8c72bf48b854ce03155213b3281/Makefile#L21
+# - http://linuxcommand.org/wss0150.php
 
+# Usage: parallel ./init.sh {} < files.txt
+
+PROGNAME=$(basename $0)
 ZIP=$1
 NAME=${ZIP%.zip}
 DB="landexplorer"
@@ -23,10 +28,9 @@ GEO_COLUMN_TYPE="geography"
 GEO_COLUMN_NAME="boundary"
 SOURCE_SRS="EPSG:27700"
 TARGET_SRS="EPSG:4326"
-SOURCE_FILE="Land_Registry_Cadastral_Parcels.gml"
-DUMP_FILE="inspire.sql"
 
-# SQL to init postgis, schema and table
+# SQL to init postgis, schema and table.
+# Note: this is a `heredoc`. It'll read the multiline sql into the SQL var.)
 read -r -d '' SQL << EOM
 CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE SCHEMA IF NOT EXISTS $SCHEMA;
@@ -37,54 +41,68 @@ CREATE TABLE IF NOT EXISTS $SCHEMA.$TABLE (
 )
 EOM
 
-if [[ $ZIP = "index" ]];
-  then
-    psql -d $DB -c "CREATE INDEX $TABLE_gix ON $SCHEMA.$TABLE USING GIST ($GEO_COLUMN_NAME);";
-    psql -d $DB -c "VACUUM ANALYZE $SCHEMA.$TABLE;";
-    psql -d $DB -c "EXPLAIN ANALYZE SELECT inspireid from landregistry.inspire i WHERE ST_Covers(i.boundary, ST_GeographyFromText('POINT(-5.57990 50.18967)'));"
-    psql -d $DB -c "SELECT count(*) from landregistry.inspire"
-    exit 1;
+function error_exit {
+  echo "${PROGNAME}: ${1:-"Unknown Error"}" 1>&2
+  exit 1
+}
+
+if [[ $ZIP = "--index" ]]; then
+  echo "Creating spatial index on $GEO_COLUMN_NAME column in $SCHEMA.$TABLE, I may be some time";
+  psql -d $DB -c "CREATE INDEX $TABLE_gix ON $SCHEMA.$TABLE USING GIST ($GEO_COLUMN_NAME);";
+  psql -d $DB -c "VACUUM ANALYZE $SCHEMA.$TABLE;";
+  echo "Done!";
+  exit 1;
 fi
 
-if [[ ! -d $NAME ]];
-  then
-    mkdir $NAME;
-    # HACK: ogr2ogr tries and fails to download the schema for the gml file. `sed` is used to strip the reference.
-    # See: https://github.com/psd/landregistry-inspire-data/blob/1c239d0299d8b8c72bf48b854ce03155213b3281/Makefile#L21
-    unzip -p -a $ZIP Land_Registry_Cadastral_Parcels.gml | sed -e 's/xsi:schemaLocation="[^"]*"//' > $NAME/Land_Registry_Cadastral_Parcels.gml
+if [[ ! -f $ZIP ]]; then
+  echo "Downloading $ZIP";
+  wget -q http://data.inspire.landregistry.gov.uk/$ZIP || error_exit "$LINENO: Failed to download $ZIP";
 fi
 
-cd $NAME;
+if [[ ! -f $NAME.gml ]]; then
+  # HACK: ogr2ogr tries and fails to download the schema for the gml file. `sed` is used to strip the reference.
+  # See: https://github.com/psd/landregistry-inspire-data/blob/1c239d0299d8b8c72bf48b854ce03155213b3281/Makefile#L21
+  unzip -p -a $ZIP Land_Registry_Cadastral_Parcels.gml | sed -e 's/xsi:schemaLocation="[^"]*"//' > $NAME.gml
+fi
+
+if [[ ! -f $NAME.gml ]]; then
+  error_exit "$LINENO: $NAME.gml missing. Failed to extract Land_Registry_Cadastral_Parcels.gml from $ZIP";
+fi
 
 # if sqldump missing, create it now.
-if [[ ! -f $DUMP_FILE ]];
-  then
-    echo "Convering GML to SQL";
-    ogr2ogr \
-      --config PG_USE_COPY YES \
-      -lco create_schema=off \
-      -lco create_table=off \
-      -lco spatial_index=off \
-      -lco schema=$SCHEMA \
-      -lco geom_type=$GEO_COLUMN_TYPE \
-      -lco geometry_name=$GEO_COLUMN_NAME \
-      -s_srs $SOURCE_SRS \
-      -t_srs $TARGET_SRS \
-      -select inspireid \
-      -nln $TABLE \
-      -f PGDump $DUMP_FILE \
-      $SOURCE_FILE \
-      -progress;
+if [[ ! -f $NAME.sql ]]; then
+  echo "Converting $NAME.gml to SQL";
+  ogr2ogr \
+    --config PG_USE_COPY YES \
+    -lco create_schema=off \
+    -lco create_table=off \
+    -lco spatial_index=off \
+    -lco schema=$SCHEMA \
+    -lco geom_type=$GEO_COLUMN_TYPE \
+    -lco geometry_name=$GEO_COLUMN_NAME \
+    -s_srs $SOURCE_SRS \
+    -t_srs $TARGET_SRS \
+    -select inspireid \
+    -nln $TABLE \
+    -f PGDump $NAME.sql \
+    $NAME.gml \
+    -progress || error_exit "$LINENO: Failed to convert $NAME.gml to SQL";
 fi
 
-# If DB missing, then create all the things.
-if [[ -z `psql -Atqc "\list $DB"` ]];
-  then
-    createdb $DB;
-    echo "$DB db created";
-    psql -d $DB -Atqc "$SQL";
-    echo "$SCHEMA.$TABLE created";
+# If DB missing, then create db, scheam and table.
+if [[ -z `psql -Atqc "\list $DB"` ]]; then
+  createdb $DB || error_exit "$LINENO: Failed to create db $DB";
+  echo "$DB db created";
+  psql -d $DB -Atqc "$SQL" || error_exit "$LINENO: Failed to create db $SCHEMA and $TABLE";
+  echo "$SCHEMA.$TABLE created";
 fi
 
-psql -d $DB -f $DUMP_FILE
-echo "$NAME imported";
+echo "Importing $NAME.sql to $DB db"
+
+if psql -d $DB -f $NAME.sql ; then
+  # Clean up.
+  rm $NAME.sql $NAME.gml $NAME.gfs $NAME.zip
+  echo "Success! $NAME.sql imported";
+else
+  error_exit "$LINENO: Failed to import $NAME.sql to $DB";
+fi
