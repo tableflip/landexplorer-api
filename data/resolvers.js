@@ -4,8 +4,13 @@ const resolvers = {
   Query: {
     inspireId (_, args) {
       const { lng, lat } = args
-      const query = `SELECT inspireid FROM predefined WHERE ST_Contains(ST_Transform(ST_SetSRID(wkb_geometry, 27700), 4326),ST_GeomFromText('POINT(${lng} ${lat})', 4326));`
-
+      const query = `
+      SELECT inspireid
+      FROM landregistry.inspire i
+      WHERE ST_Covers(
+        i.boundary,
+        ST_GeographyFromText('POINT(${lng} ${lat})')
+      );`
       return db.query(query, { type: db.QueryTypes.SELECT })
       .then((results) => {
         if (!results || !results[0]) return null
