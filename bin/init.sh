@@ -22,6 +22,7 @@ PROGNAME=$(basename $0)
 ZIP=$1
 NAME=${ZIP%.zip}
 DB="landexplorer"
+DB_USER="landexplorer-api"
 SCHEMA="landregistry"
 TABLE="inspire"
 GEO_COLUMN_TYPE="geography"
@@ -38,7 +39,10 @@ CREATE TABLE IF NOT EXISTS $SCHEMA.$TABLE (
   id serial PRIMARY KEY,
   $GEO_COLUMN_NAME geography(Polygon,4326) NOT NULL,
   inspireid integer NOT NULL
-)
+);
+GRANT USAGE ON SCHEMA $SCHEMA TO "$DB_USER";
+GRANT SELECT ON ALL TABLES IN SCHEMA $SCHEMA TO "$DB_USER";
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA $SCHEMA TO "$DB_USER";
 EOM
 
 function error_exit {
@@ -46,7 +50,27 @@ function error_exit {
   exit 1
 }
 
-if [[ $ZIP = "--index" ]]; then
+# Run before hand to create db and schema
+if [[ $1 = "--create-db" ]]; then
+  # If landexplorer-api user is missing, create them.
+  if ! psql -d postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1; then
+    createuser $DB_USER
+  fi;
+
+  # If DB missing, then create db, scheam and table.
+  if [[ -z `psql -Atqc "\list $DB"` ]]; then
+    createdb $DB || error_exit "$LINENO: Failed to create db $DB";
+    echo "$DB db created";
+    psql -d $DB -Atqc "$SQL" || error_exit "$LINENO: Failed to create db $SCHEMA and $TABLE";
+    echo "$SCHEMA.$TABLE created";
+  fi
+  
+  echo "Done!";
+  exit 1;
+fi
+
+# Run afterwards to index all the things.
+if [[ $1 = "--index" ]]; then
   echo "Creating spatial index on $GEO_COLUMN_NAME column in $SCHEMA.$TABLE, I may be some time";
   psql -d $DB -c "CREATE INDEX $TABLE_gix ON $SCHEMA.$TABLE USING GIST ($GEO_COLUMN_NAME);";
   psql -d $DB -c "VACUUM ANALYZE $SCHEMA.$TABLE;";
@@ -87,14 +111,6 @@ if [[ ! -f $NAME.sql ]]; then
     -f PGDump $NAME.sql \
     $NAME.gml \
     -progress || error_exit "$LINENO: Failed to convert $NAME.gml to SQL";
-fi
-
-# If DB missing, then create db, scheam and table.
-if [[ -z `psql -Atqc "\list $DB"` ]]; then
-  createdb $DB || error_exit "$LINENO: Failed to create db $DB";
-  echo "$DB db created";
-  psql -d $DB -Atqc "$SQL" || error_exit "$LINENO: Failed to create db $SCHEMA and $TABLE";
-  echo "$SCHEMA.$TABLE created";
 fi
 
 echo "Importing $NAME.sql to $DB db"
