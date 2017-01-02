@@ -1,6 +1,6 @@
 {
   "name": "landexplorer-api",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Explore open geo data in the UK",
   "scripts": {
     "start": "babel-node ./index.js",
