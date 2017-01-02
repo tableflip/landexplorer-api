@@ -3,7 +3,7 @@ import Sequelize from 'sequelize'
 import { postgres } from 'config'
 
 const db = new Sequelize(postgres.db, postgres.username, postgres.password, {
-  host: 'localhost',
+  host: postgres.host,
   dialect: 'postgres',
   pool: {
     max: 5,

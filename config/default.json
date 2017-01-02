@@ -2,6 +2,7 @@
   "port": 8080,
   "host": "localhost",
   "postgres": {
+    "host": "localhost",
     "db": "landexplorer",
     "username": null,
     "password": null
