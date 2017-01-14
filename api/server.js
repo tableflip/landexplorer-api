@@ -5,16 +5,14 @@ import bodyParser from 'body-parser'
 import config from 'config'
 import cors from 'cors'
 
-import Schema from '../data/schema'
-import Resolvers from '../data/resolvers'
-import Connectors from '../data/connectors'
+import Schema from './schema'
+import Resolvers from './resolvers'
 
 const api = express()
 
 const executableSchema = makeExecutableSchema({
   typeDefs: Schema,
   resolvers: Resolvers,
-  connectors: Connectors,
   allowUndefinedInResolve: false,
   printErrors: true
 })
